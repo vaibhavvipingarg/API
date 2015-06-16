@@ -5,18 +5,16 @@ module.exports = function(router, passport) {
 	// PROFILE SECTION =========================
 
 	// process the login form - Retrieve User
-	router.get('/user', passport.authenticate('local-login', {
-			successRedirect : '/profile', // redirect to the secure profile section
-			failureRedirect : '/error', // redirect back to the signup page if there is an error
-			failureFlash : true // allow flash messages
-	}));
+	router.get('/user', passport.authenticate('local-login'), function(req, res) {
+		console.log(req.user);
+		res.json(req.user);
+	});
 
 	// process the signup form - Create User
-	router.post('/user', passport.authenticate('local-signup', {
-			successRedirect : '/profile', // redirect to the secure profile section
-			failureRedirect : '/error', // redirect back to the signup page if there is an error
-			failureFlash : true // allow flash messages
-	}));
+	router.post('/user', passport.authenticate('local-signup'), function(req, res) {
+		console.log(req.user);
+		res.json(req.user);
+	});
 
 	// normal routes ===============================================================
 	router.get('/error', function(req, res) {
