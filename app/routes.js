@@ -4,4 +4,5 @@ var User     = require('../app/models/user');
 module.exports = function(app, passport) {
 	require("../app/routes/user.js")(app, passport);
 	require("../app/routes/shop.js")(app, User);
+	require("../app/routes/products.js")(app, User);
 };
