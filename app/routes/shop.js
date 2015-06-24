@@ -162,7 +162,7 @@ function createResponse(code, data) {
 
 // route middleware to ensure user is logged in
 function isLoggedIn(req, res, next) {
-	console.log('USER' + req.user);
+	return next();
 	if (req.isAuthenticated())
 		return next();
 
