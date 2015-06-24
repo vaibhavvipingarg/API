@@ -1,10 +1,10 @@
 var mongoose     = require('mongoose');
 var Schema       = mongoose.Schema;
 
-var shopSchema   = new Schema({
+var productSchema   = new Schema({
 	name: String,
-	owner_id: String,
+	shops: [String],
 	reviews: [Schema.Types.Mixed]
 });
 
-module.exports = mongoose.model('Shop', shopSchema);
+module.exports = mongoose.model('Product', productSchema);

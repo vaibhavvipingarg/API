@@ -1,11 +1,11 @@
 var Shop     = require('../../app/models/shop');
+var Product     = require('../../app/models/product');
 
 module.exports = function(router, user) {
 	// on routes that end in /bears
 // ----------------------------------------------------
-// create a bear (accessed at POST http://localhost:8080/bears)
-router.post('/shops', function(req, res) {
-		
+// create a shop (accessed at POST http://localhost:8080/api/shops)
+	router.post('/shops', function(req, res) {
 		var shop = new Shop();		// create a new instance of the Bear model
 		shop.name = req.body.name;  // set the bears name (comes from the request)
 		shop.owner_id = req.body.owner_id;
@@ -18,8 +18,8 @@ router.post('/shops', function(req, res) {
 		});
 	});
 
-// get all the bears (accessed at GET http://localhost:8080/api/bears)
-router.get('/shops', function(req, res) {	
+	// get all the shops (accessed at GET http://localhost:8080/api/shops)
+	router.get('/shops', function(req, res) {	
 		Shop.find(function(err, shops) {
 			if (err)
 				res.send(err);
@@ -28,18 +28,37 @@ router.get('/shops', function(req, res) {
 		});
 	});
 
-// on routes that end in /bears/:bear_id
+	// Product related paths-------------------------------
+	router.get('/shops/products', function(req, res) {	
+		Shop.find({}, function(err, shops) {
+			if (err)
+				res.send(err);
+
+			//Expensive call, try to use some filters
+			//Iterate over all the shops and get all the products in that.
+			res.json(createResponse(200, shops));
+		});
+	});
+
+// on routes that end in /shops/user/:user_id
 // ----------------------------------------------------
 
 	// get the SHOPS for this USER
-	router.get('/shops/user/:user_id', function(req, res) {	
-		console.log("found the route");
-	Shop.find({ 'owner_id' :  req.params.user_id }, function(err, shops) {
-		console.log("found a shop");
+	router.get('/shops/user/:user_id', isLoggedIn, function(req, res) {	
+		Shop.find({ 'owner_id' :  req.params.user_id }, function(err, shops) {
 			if (err)
 				res.send(err);
-			console.log(shops);
-			res.json(shops);
+
+			res.json(createResponse(200, shops));
+		});
+	})
+
+	router.get('/shops/:shop_id/products', function(req, res) {	
+		Shop.findById(req.params.shop_id, function(err, shop) {
+			if (err)
+				res.send(err);
+
+			res.json(shop.products);
 		});
 	})
 
@@ -82,4 +101,71 @@ router.get('/shops', function(req, res) {
 		});
 	});
 
+	// Product related paths-------------------------------
+	router.get('/shops/:shop_id/products', function(req, res) {	
+		Shop.findById(req.params.shop_id, function(err, shop) {
+			if (err)
+				res.send(err);
+
+			res.json(createResponse(200, shop.products));
+		});
+	});
+
+	router.post('/shops/:shop_id/products', function(req, res) {
+		var prod = new Product();		// create a new instance of the Bear model
+		prod.name = req.body.name;  // set the bears name (comes from the request)
+		prod.shops.push(req.body.shop_id);
+
+		prod.save(function(err) {
+			if (err)
+				res.send(err);
+
+			Shop.findById(req.params.shop_id, function(err, shop) {
+				if (err)
+					res.send(err);
+
+				shop.products.push(prod);
+				shop.save(function(err) {
+					if (err)
+						res.send(err);
+
+					res.json(createResponse(200, {}));
+				});
+			});
+		});
+	});
+
+	// Review related paths-------------------------------
+	router.post('/shops/:shop_id/review', function(req, res) {
+		Shop.findById(req.params.shop_id, function(err, shop) {
+			if (err)
+				res.send(err);
+
+			shop.reviews.push({'text': req.body.review, 'rating': req.body.rating});
+			shop.save(function(err) {
+				if (err)
+					res.send(err);
+
+				res.json({ message: 'Shop review added!' });
+			});
+
+		});
+	});
 };
+
+function createResponse(code, data) {
+	var res = {};
+	res.status = code;
+	res.data = data;
+	return res;
+}
+
+// route middleware to ensure user is logged in
+function isLoggedIn(req, res, next) {
+	console.log('USER' + req.user);
+	if (req.isAuthenticated())
+		return next();
+
+	res.json(createResponse(403, {}));
+}
+

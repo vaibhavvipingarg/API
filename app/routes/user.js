@@ -25,6 +25,12 @@ module.exports = function(router, passport) {
 		res.json(req.user);
 	});
 
+	// LOGOUT ==============================
+	router.get('/logout', function(req, res) {
+		//Add error hadling
+		req.logout();
+		res.json("200-Logout Success");
+	});
 };
 
 // route middleware to ensure user is logged in
